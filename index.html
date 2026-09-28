@@ -1,653 +1,1307 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
 <title>Category Challenge</title>
 
 <style>
-    * {
-        box-sizing: border-box;
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: linear-gradient(135deg, #eef2ff, #fdf2f8);
+    color: #1e293b;
+    min-height: 100vh;
+}
+
+.container {
+    width: min(1100px, 94%);
+    margin: auto;
+    padding: 25px 0 40px;
+}
+
+/* HEADER */
+
+header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+h1 {
+    margin: 0 0 8px;
+    font-size: clamp(30px, 6vw, 45px);
+}
+
+.subtitle {
+    color: #64748b;
+    margin: 0;
+}
+
+/* INFO */
+
+.info-bar {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 20px 0;
+}
+
+.info-box {
+    background: white;
+    padding: 10px 20px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,.08);
+    font-weight: bold;
+}
+
+#timer {
+    font-size: 20px;
+}
+
+#timer.warning {
+    color: #ef4444;
+}
+
+/* MESSAGE */
+
+#message {
+    min-height: 30px;
+    text-align: center;
+    font-weight: bold;
+    margin: 10px 0 18px;
+}
+
+/* WORD AREA */
+
+.words-area {
+    background: white;
+    padding: 20px;
+    border-radius: 22px;
+    box-shadow: 0 7px 25px rgba(0,0,0,.08);
+    margin-bottom: 22px;
+}
+
+.words-title {
+    text-align: center;
+    font-weight: bold;
+    font-size: 18px;
+    margin-bottom: 15px;
+}
+
+#words {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* WORD BUTTON */
+
+.word {
+    border: none;
+    background: #e0e7ff;
+    color: #1e293b;
+    padding: 13px 17px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: grab;
+    user-select: none;
+    touch-action: manipulation;
+    transition: .2s;
+}
+
+.word:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 7px 15px rgba(0,0,0,.12);
+}
+
+.word.selected {
+    outline: 4px solid #6366f1;
+    background: #c7d2fe;
+    transform: scale(1.06);
+}
+
+.word.placed {
+    cursor: default;
+    opacity: .65;
+    background: #f1f5f9;
+    width: 100%;
+}
+
+.word.dragging {
+    opacity: .5;
+}
+
+/* CATEGORIES */
+
+.categories {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.category {
+    background: white;
+    min-height: 170px;
+    border-radius: 22px;
+    padding: 15px;
+    box-shadow: 0 7px 20px rgba(0,0,0,.08);
+    border: 3px solid transparent;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.category:hover {
+    transform: translateY(-3px);
+}
+
+.category.drag-over,
+.category.selected-target {
+    border-color: #6366f1;
+    background: #eef2ff;
+    transform: scale(1.03);
+}
+
+.category-title {
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 12px;
+}
+
+.placed {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+/* WRONG ANSWER */
+
+.wrong {
+    animation: shake .3s;
+}
+
+@keyframes shake {
+
+    25% {
+        transform: translateX(-7px);
     }
 
-    body {
-        margin: 0;
-        font-family: Arial, Helvetica, sans-serif;
-        background: linear-gradient(135deg, #eef2ff, #f8fafc);
-        color: #1e293b;
-        min-height: 100vh;
+    50% {
+        transform: translateX(7px);
     }
 
-    .container {
-        width: min(1100px, 94%);
-        margin: 0 auto;
-        padding: 25px 0 40px;
+    75% {
+        transform: translateX(-4px);
     }
 
-    header {
-        text-align: center;
-        margin-bottom: 20px;
+}
+
+/* BUTTON */
+
+#restart {
+    display: block;
+    margin: 25px auto 0;
+    border: none;
+    background: #6366f1;
+    color: white;
+    padding: 14px 28px;
+    border-radius: 15px;
+    font-size: 17px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#restart:hover {
+    background: #4f46e5;
+}
+
+.mobile-help {
+    text-align: center;
+    color: #64748b;
+    font-size: 14px;
+    margin-top: 12px;
+}
+
+
+/* =========================
+   RESULT SCREEN
+========================= */
+
+.result-overlay {
+
+    position: fixed;
+
+    inset: 0;
+
+    background: rgba(15,23,42,.75);
+
+    display: none;
+
+    align-items: center;
+
+    justify-content: center;
+
+    z-index: 999;
+
+    padding: 20px;
+
+}
+
+.result-card {
+
+    background: white;
+
+    width: min(500px, 95%);
+
+    border-radius: 30px;
+
+    padding: 35px 25px;
+
+    text-align: center;
+
+    box-shadow: 0 20px 60px rgba(0,0,0,.25);
+
+    animation: pop .45s ease;
+
+}
+
+@keyframes pop {
+
+    0% {
+        transform: scale(.5);
+        opacity: 0;
     }
 
-    h1 {
-        margin: 0 0 8px;
-        font-size: clamp(28px, 5vw, 42px);
+    80% {
+        transform: scale(1.05);
     }
 
-    .subtitle {
-        color: #64748b;
-        margin: 0;
-        font-size: 16px;
+    100% {
+        transform: scale(1);
+        opacity: 1;
     }
 
-    .info-bar {
-        display: flex;
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 12px;
-        margin: 20px 0;
+}
+
+.result-emoji {
+
+    font-size: 80px;
+
+    margin-bottom: 10px;
+
+}
+
+.result-title {
+
+    font-size: 34px;
+
+    font-weight: 800;
+
+    margin-bottom: 10px;
+
+}
+
+.result-score {
+
+    font-size: 55px;
+
+    font-weight: 900;
+
+    margin: 15px 0;
+
+}
+
+.result-message {
+
+    font-size: 19px;
+
+    color: #475569;
+
+    line-height: 1.5;
+
+    margin-bottom: 25px;
+
+}
+
+.play-again {
+
+    border: none;
+
+    background: #6366f1;
+
+    color: white;
+
+    padding: 15px 30px;
+
+    border-radius: 15px;
+
+    font-size: 18px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+}
+
+
+/* CONFETTI */
+
+.confetti {
+
+    position: fixed;
+
+    top: -20px;
+
+    font-size: 25px;
+
+    animation: fall 3s linear forwards;
+
+    z-index: 1000;
+
+}
+
+@keyframes fall {
+
+    to {
+
+        transform:
+            translateY(110vh)
+            rotate(720deg);
+
     }
 
-    .info-box {
-        background: white;
-        padding: 10px 20px;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        font-weight: bold;
-    }
+}
 
-    #timer {
-        font-size: 20px;
-    }
 
-    #timer.warning {
-        color: #dc2626;
-    }
+/* MOBILE */
 
-    #message {
-        min-height: 30px;
-        text-align: center;
-        font-weight: bold;
-        margin: 10px 0 18px;
-    }
-
-    .words-area {
-        background: white;
-        padding: 18px;
-        border-radius: 18px;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-        margin-bottom: 22px;
-    }
-
-    .words-title {
-        text-align: center;
-        font-weight: bold;
-        margin-bottom: 15px;
-    }
-
-    #words {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 10px;
-        min-height: 60px;
-    }
-
-    .word {
-        border: none;
-        background: #e0e7ff;
-        color: #1e293b;
-        padding: 12px 17px;
-        border-radius: 12px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: grab;
-        user-select: none;
-        touch-action: none;
-        transition: transform 0.15s, box-shadow 0.15s;
-    }
-
-    .word:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 12px rgba(0,0,0,0.12);
-    }
-
-    .word.dragging {
-        opacity: 0.5;
-        transform: scale(0.95);
-    }
+@media (max-width: 750px) {
 
     .categories {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 16px;
+
+        grid-template-columns: repeat(2, 1fr);
+
     }
 
     .category {
-        background: white;
-        min-height: 170px;
-        border-radius: 18px;
-        padding: 15px;
-        box-shadow: 0 5px 18px rgba(0,0,0,0.08);
-        border: 3px solid transparent;
-        transition: transform 0.15s, border-color 0.15s, background 0.15s;
+
+        min-height: 145px;
+
     }
 
-    .category.drag-over {
-        border-color: #6366f1;
-        background: #eef2ff;
-        transform: scale(1.02);
+}
+
+@media (max-width: 500px) {
+
+    .container {
+
+        width: 94%;
+
+        padding-top: 18px;
+
+    }
+
+    .categories {
+
+        grid-template-columns: 1fr 1fr;
+
+        gap: 10px;
+
+    }
+
+    .category {
+
+        min-height: 125px;
+
+        padding: 10px;
+
     }
 
     .category-title {
-        text-align: center;
-        font-size: 19px;
-        font-weight: bold;
-        margin-bottom: 12px;
-    }
 
-    .placed {
-        display: flex;
-        flex-direction: column;
-        gap: 7px;
-    }
-
-    .placed .word {
-        cursor: default;
-        opacity: 0.65;
-        background: #f1f5f9;
-    }
-
-    .wrong {
-        animation: shake 0.3s;
-    }
-
-    @keyframes shake {
-        25% {
-            transform: translateX(-7px);
-        }
-        50% {
-            transform: translateX(7px);
-        }
-        75% {
-            transform: translateX(-4px);
-        }
-    }
-
-    #restart {
-        display: block;
-        margin: 25px auto 0;
-        border: none;
-        background: #4f46e5;
-        color: white;
-        padding: 13px 25px;
-        border-radius: 12px;
         font-size: 16px;
-        font-weight: bold;
-        cursor: pointer;
+
     }
 
-    #restart:hover {
-        background: #4338ca;
+    .word {
+
+        font-size: 15px;
+
+        padding: 11px 14px;
+
     }
 
-    .game-over {
-        text-align: center;
-        background: white;
-        border-radius: 18px;
-        padding: 25px;
-        margin-top: 20px;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    .result-emoji {
+
+        font-size: 65px;
+
     }
 
-    .game-over h2 {
-        margin-top: 0;
+    .result-title {
+
+        font-size: 28px;
+
     }
 
-    @media (max-width: 750px) {
-        .categories {
-            grid-template-columns: repeat(2, 1fr);
-        }
+    .result-score {
 
-        .category {
-            min-height: 150px;
-        }
+        font-size: 45px;
+
     }
 
-    @media (max-width: 500px) {
-        .container {
-            width: 94%;
-            padding-top: 18px;
-        }
+}
 
-        .categories {
-            grid-template-columns: 1fr;
-        }
-
-        .category {
-            min-height: 120px;
-        }
-
-        .word {
-            font-size: 15px;
-            padding: 11px 14px;
-        }
-    }
 </style>
 </head>
 
+
 <body>
+
 
 <div class="container">
 
-    <header>
-        <h1>🎯 Category Challenge</h1>
-        <p class="subtitle">
-            Drag each phrase into the correct category!
-        </p>
-    </header>
+<header>
 
-    <div class="info-bar">
-        <div class="info-box">
-            ⏱️ Time: <span id="timer">1:00</span>
-        </div>
+<h1>🎯 Category Challenge</h1>
 
-        <div class="info-box">
-            ⭐ Score: <span id="score">0</span>
-        </div>
+<p class="subtitle">
+Sort the phrases into the correct categories!
+</p>
 
-        <div class="info-box">
-            📌 Remaining: <span id="remaining">12</span>
-        </div>
-    </div>
+</header>
 
-    <div id="message">
-        Drag each phrase to the correct category.
-    </div>
 
-    <div class="words-area">
-        <div class="words-title">
-            Words & Phrases
-        </div>
+<div class="info-bar">
 
-        <div id="words"></div>
-    </div>
+<div class="info-box">
 
-    <div id="categories" class="categories"></div>
-
-    <button id="restart">
-        🔄 Restart Round
-    </button>
+⏱️ Time:
+<span id="timer">1:00</span>
 
 </div>
 
+<div class="info-box">
+
+⭐ Score:
+<span id="score">0</span>
+
+</div>
+
+<div class="info-box">
+
+📌 Remaining:
+<span id="remaining">12</span>
+
+</div>
+
+</div>
+
+
+<div id="message">
+
+📱 Tap a phrase → Tap a category
+
+</div>
+
+
+<div class="words-area">
+
+<div class="words-title">
+
+🧩 Words & Phrases
+
+</div>
+
+<div id="words"></div>
+
+<div class="mobile-help">
+
+📱 Phone: Tap a phrase → Tap a category
+
+<br>
+
+💻 Computer: Drag → Drop
+
+</div>
+
+</div>
+
+
+<div id="categories" class="categories"></div>
+
+
+<button id="restart">
+
+🔄 Restart Round
+
+</button>
+
+</div>
+
+
+<!-- RESULT POPUP -->
+
+<div id="resultOverlay" class="result-overlay">
+
+<div class="result-card">
+
+<div id="resultEmoji" class="result-emoji">
+
+🎉
+
+</div>
+
+<div id="resultTitle" class="result-title">
+
+Congratulations!
+
+</div>
+
+<div id="resultScore" class="result-score">
+
+12 / 12
+
+</div>
+
+<div id="resultMessage" class="result-message">
+
+Amazing! You got everything correct!
+
+</div>
+
+<button class="play-again" onclick="startGame()">
+
+🎮 Play Again
+
+</button>
+
+</div>
+
+</div>
+
+
+
 <script>
 
+
+/* =========================
+   GAME DATA
+========================= */
+
 const items = [
-    { text: "art / music", category: "Study" },
-    { text: "a foreign language", category: "Study" },
-    { text: "online", category: "Study" },
-    { text: "sport", category: "Play" },
-    { text: "games", category: "Play" },
-    { text: "a musical instrument", category: "Play" },
-    { text: "mistakes", category: "Make" },
-    { text: "friends", category: "Make" },
-    { text: "a test", category: "Do / Take" },
-    { text: "exams", category: "Do / Take" },
-    { text: "a performance", category: "Give" },
-    { text: "a school uniform", category: "Wear" }
+
+{ text:"art / music", category:"Study" },
+
+{ text:"a foreign language", category:"Study" },
+
+{ text:"online", category:"Study" },
+
+{ text:"sport", category:"Play" },
+
+{ text:"games", category:"Play" },
+
+{ text:"a musical instrument", category:"Play" },
+
+{ text:"mistakes", category:"Make" },
+
+{ text:"friends", category:"Make" },
+
+{ text:"a test", category:"Do / Take" },
+
+{ text:"exams", category:"Do / Take" },
+
+{ text:"a performance", category:"Give" },
+
+{ text:"a school uniform", category:"Wear" }
+
 ];
+
+
 const categories = [
-    {
-        name: "Make",
-        icon: "🔨"
-    },
-    {
-        name: "Wear",
-        icon: "👕"
-    },
-    {
-        name: "Do / Take",
-        icon: "✋"
-    },
-    {
-        name: "Give",
-        icon: "🎁"
-    },
-    {
-        name: "Play",
-        icon: "🎮"
-    },
-    {
-        name: "Study",
-        icon: "📚"
-    }
+
+{ name:"Make", icon:"🔨" },
+
+{ name:"Wear", icon:"👕" },
+
+{ name:"Do / Take", icon:"✋" },
+
+{ name:"Give", icon:"🎁" },
+
+{ name:"Play", icon:"🎮" },
+
+{ name:"Study", icon:"📚" }
+
 ];
+
+
+/* =========================
+   VARIABLES
+========================= */
 
 let score = 0;
+
 let remaining = items.length;
+
 let timeLeft = 60;
+
 let timer;
+
 let gameOver = false;
+
 let draggedWord = null;
 
-const wordsContainer = document.getElementById("words");
-const categoriesContainer = document.getElementById("categories");
-const scoreDisplay = document.getElementById("score");
-const remainingDisplay = document.getElementById("remaining");
-const timerDisplay = document.getElementById("timer");
-const message = document.getElementById("message");
-const restartButton = document.getElementById("restart");
+let selectedWord = null;
 
 
-/* -------------------------
+/* =========================
+   ELEMENTS
+========================= */
+
+const wordsContainer =
+document.getElementById("words");
+
+const categoriesContainer =
+document.getElementById("categories");
+
+const scoreDisplay =
+document.getElementById("score");
+
+const remainingDisplay =
+document.getElementById("remaining");
+
+const timerDisplay =
+document.getElementById("timer");
+
+const message =
+document.getElementById("message");
+
+const restartButton =
+document.getElementById("restart");
+
+const resultOverlay =
+document.getElementById("resultOverlay");
+
+const resultEmoji =
+document.getElementById("resultEmoji");
+
+const resultTitle =
+document.getElementById("resultTitle");
+
+const resultScore =
+document.getElementById("resultScore");
+
+const resultMessage =
+document.getElementById("resultMessage");
+
+
+/* =========================
    SHUFFLE
-------------------------- */
+========================= */
 
 function shuffle(array) {
-    return [...array].sort(() => Math.random() - 0.5);
+
+return [...array].sort(
+() => Math.random() - .5
+);
+
 }
 
 
-/* -------------------------
+/* =========================
    CREATE WORDS
-------------------------- */
+========================= */
 
 function createWords() {
 
-    wordsContainer.innerHTML = "";
+wordsContainer.innerHTML = "";
 
-    const shuffledItems = shuffle(items);
+const shuffledItems = shuffle(items);
 
-    shuffledItems.forEach(item => {
+shuffledItems.forEach(item => {
 
-        const word = document.createElement("button");
+const word =
+document.createElement("button");
 
-        word.className = "word";
-        word.textContent = item.text;
+word.className = "word";
 
-        word.draggable = true;
+word.textContent = item.text;
 
-        word.dataset.category = item.category;
+word.draggable = true;
 
-        word.addEventListener("dragstart", function () {
+word.dataset.category =
+item.category;
 
-            if (gameOver) return;
 
-            draggedWord = word;
+/* DESKTOP */
 
-            word.classList.add("dragging");
+word.addEventListener(
+"dragstart",
+function() {
 
-        });
+if(gameOver) return;
 
-        word.addEventListener("dragend", function () {
+draggedWord = word;
 
-            word.classList.remove("dragging");
-
-        });
-
-        wordsContainer.appendChild(word);
-
-    });
-}
-
-
-/* -------------------------
-   CREATE RANDOM CATEGORIES
-------------------------- */
-
-function createCategories() {
-
-    categoriesContainer.innerHTML = "";
-
-    const shuffledCategories = shuffle(categories);
-
-    shuffledCategories.forEach(category => {
-
-        const box = document.createElement("div");
-
-        box.className = "category";
-
-        box.dataset.category = category.name;
-
-        box.innerHTML = `
-            <div class="category-title">
-                ${category.icon} ${category.name}
-            </div>
-
-            <div class="placed"></div>
-        `;
-
-        box.addEventListener("dragover", function(event) {
-
-            event.preventDefault();
-
-            if (!gameOver) {
-                box.classList.add("drag-over");
-            }
-
-        });
-
-        box.addEventListener("dragleave", function() {
-
-            box.classList.remove("drag-over");
-
-        });
-
-        box.addEventListener("drop", function(event) {
-
-            event.preventDefault();
-
-            box.classList.remove("drag-over");
-
-            if (!gameOver && draggedWord) {
-
-                checkAnswer(box);
-
-            }
-
-        });
-
-        categoriesContainer.appendChild(box);
-
-    });
-}
-
-
-/* -------------------------
-   CHECK ANSWER
-------------------------- */
-
-function checkAnswer(categoryBox) {
-
-    const correctCategory = draggedWord.dataset.category;
-
-    const selectedCategory = categoryBox.dataset.category;
-
-    if (correctCategory === selectedCategory) {
-
-        score++;
-        remaining--;
-
-        draggedWord.classList.remove("dragging");
-
-        draggedWord.classList.add("placed");
-
-        draggedWord.draggable = false;
-
-        categoryBox
-            .querySelector(".placed")
-            .appendChild(draggedWord);
-
-        message.textContent =
-            `✅ Correct! "${draggedWord.textContent}" → ${selectedCategory}`;
-
-        draggedWord = null;
-
-        updateDisplay();
-
-        if (remaining === 0) {
-
-            endGame(
-                `🎉 Excellent! You sorted all ${items.length} phrases!`
-            );
-
-        }
-
-    } else {
-
-        draggedWord.classList.add("wrong");
-
-        message.textContent =
-            "❌ Not quite! Try another category.";
-
-        setTimeout(() => {
-
-            if (draggedWord) {
-                draggedWord.classList.remove("wrong");
-            }
-
-        }, 350);
-
-    }
+word.classList.add("dragging");
 
 }
+);
 
 
-/* -------------------------
-   UPDATE DISPLAY
-------------------------- */
+word.addEventListener(
+"dragend",
+function() {
 
-function updateDisplay() {
-
-    scoreDisplay.textContent = score;
-
-    remainingDisplay.textContent = remaining;
-
-    const minutes = Math.floor(timeLeft / 60);
-
-    const seconds = timeLeft % 60;
-
-    timerDisplay.textContent =
-        `${minutes}:${String(seconds).padStart(2, "0")}`;
-
-    if (timeLeft <= 10) {
-
-        timerDisplay.classList.add("warning");
-
-    } else {
-
-        timerDisplay.classList.remove("warning");
-
-    }
+word.classList.remove("dragging");
 
 }
+);
 
 
-/* -------------------------
-   TIMER
-------------------------- */
+/* MOBILE */
 
-function startTimer() {
+word.addEventListener(
+"click",
+function() {
 
-    clearInterval(timer);
+if(gameOver) return;
 
-    timer = setInterval(function() {
-
-        if (gameOver) return;
-
-        timeLeft--;
-
-        updateDisplay();
-
-        if (timeLeft <= 0) {
-
-            endGame(
-                `⏰ Time's up! Your final score is ${score}/${items.length}.`
-            );
-
-        }
-
-    }, 1000);
-
-}
+if(word.classList.contains("placed"))
+return;
 
 
-/* -------------------------
-   END GAME
-------------------------- */
+document
+.querySelectorAll(".word")
+.forEach(w =>
+w.classList.remove("selected")
+);
 
-function endGame(text) {
 
-    gameOver = true;
+document
+.querySelectorAll(".category")
+.forEach(c =>
+c.classList.remove("selected-target")
+);
 
-    clearInterval(timer);
 
-    message.textContent = text;
+selectedWord = word;
 
-    document
-        .querySelectorAll(".word")
-        .forEach(word => {
+word.classList.add("selected");
 
-            word.draggable = false;
-
-        });
+message.textContent =
+`👉 Choose a category for "${word.textContent}"`;
 
 }
+);
 
 
-/* -------------------------
-   START / RESTART GAME
-------------------------- */
-
-function startGame() {
-
-    clearInterval(timer);
-
-    score = 0;
-
-    remaining = items.length;
-
-    timeLeft = 60;
-
-    gameOver = false;
-
-    draggedWord = null;
-
-    message.textContent =
-        "Drag each phrase to the correct category.";
-
-    createWords();
-
-    /*
-       IMPORTANT:
-       The categories are shuffled every time
-       this function runs.
-    */
-    createCategories();
-
-    updateDisplay();
-
-    startTimer();
-
-}
-
-
-/* -------------------------
-   RESTART BUTTON
-------------------------- */
-
-restartButton.addEventListener("click", function() {
-
-    startGame();
+wordsContainer.appendChild(word);
 
 });
 
+}
 
-/* -------------------------
-   START FIRST ROUND
-------------------------- */
+
+/* =========================
+   CREATE CATEGORIES
+========================= */
+
+function createCategories() {
+
+categoriesContainer.innerHTML = "";
+
+const shuffledCategories =
+shuffle(categories);
+
+shuffledCategories.forEach(category => {
+
+const box =
+document.createElement("div");
+
+box.className = "category";
+
+box.dataset.category =
+category.name;
+
+box.innerHTML = `
+
+<div class="category-title">
+
+${category.icon} ${category.name}
+
+</div>
+
+<div class="placed"></div>
+
+`;
+
+
+/* DRAG */
+
+box.addEventListener(
+"dragover",
+function(event) {
+
+event.preventDefault();
+
+if(!gameOver)
+
+box.classList.add(
+"drag-over"
+);
+
+}
+);
+
+
+box.addEventListener(
+"dragleave",
+function() {
+
+box.classList.remove(
+"drag-over"
+);
+
+}
+);
+
+
+box.addEventListener(
+"drop",
+function(event) {
+
+event.preventDefault();
+
+box.classList.remove(
+"drag-over"
+);
+
+if(!gameOver && draggedWord)
+
+checkAnswer(
+box,
+draggedWord
+);
+
+}
+);
+
+
+/* MOBILE */
+
+box.addEventListener(
+"click",
+function() {
+
+if(gameOver) return;
+
+if(!selectedWord) {
+
+message.textContent =
+"👆 First choose a phrase!";
+
+return;
+
+}
+
+checkAnswer(
+box,
+selectedWord
+);
+
+}
+);
+
+
+categoriesContainer.appendChild(box);
+
+});
+
+}
+
+
+/* =========================
+   CHECK ANSWER
+========================= */
+
+function checkAnswer(
+categoryBox,
+word
+) {
+
+if(!word || gameOver)
+return;
+
+
+const correct =
+word.dataset.category;
+
+const selected =
+categoryBox.dataset.category;
+
+
+/* CORRECT */
+
+if(correct === selected) {
+
+score++;
+
+remaining--;
+
+
+word.classList.remove(
+"dragging",
+"selected"
+);
+
+word.classList.add("placed");
+
+word.draggable = false;
+
+
+categoryBox
+.querySelector(".placed")
+.appendChild(word);
+
+
+message.textContent =
+`✅ Correct! ${word.textContent} → ${selected}`;
+
+
+draggedWord = null;
+
+selectedWord = null;
+
+
+updateDisplay();
+
+
+if(remaining === 0) {
+
+endGame();
+
+}
+
+}
+
+
+/* WRONG */
+
+else {
+
+word.classList.add("wrong");
+
+message.textContent =
+"😅 Oops! Not quite! Try again!";
+
+
+setTimeout(() => {
+
+word.classList.remove(
+"wrong"
+);
+
+},350);
+
+}
+
+}
+
+
+/* =========================
+   UPDATE
+========================= */
+
+function updateDisplay() {
+
+scoreDisplay.textContent =
+score;
+
+remainingDisplay.textContent =
+remaining;
+
+
+const minutes =
+Math.floor(timeLeft / 60);
+
+const seconds =
+timeLeft % 60;
+
+
+timerDisplay.textContent =
+`${minutes}:${String(seconds).padStart(2,"0")}`;
+
+
+if(timeLeft <= 10)
+
+timerDisplay.classList.add(
+"warning"
+);
+
+else
+
+timerDisplay.classList.remove(
+"warning"
+);
+
+}
+
+
+/* =========================
+   TIMER
+========================= */
+
+function startTimer() {
+
+clearInterval(timer);
+
+timer =
+setInterval(() => {
+
+if(gameOver)
+return;
+
+timeLeft--;
+
+updateDisplay();
+
+if(timeLeft <= 0) {
+
+endGame();
+
+}
+
+},1000);
+
+}
+
+
+/* =========================
+   RESULT SCREEN
+========================= */
+
+function endGame() {
+
+gameOver = true;
+
+clearInterval(timer);
+
+document
+.querySelectorAll(".word")
+.forEach(word =>
+word.draggable = false
+);
+
+
+showResult();
+
+}
+
+
+/* =========================
+   RESULT MESSAGE
+========================= */
+
+function showResult() {
+
+resultOverlay.style.display =
+"flex";
+
+
+resultScore.textContent =
+`${score} / ${items.length}`;
+
+
+if(score === items.length) {
+
+resultEmoji.textContent =
+"🎉🏆🥳";
+
+resultTitle.textContent =
+"CONGRATULATIONS!";
+
+resultMessage.textContent =
+"🔥 Perfect score! You got EVERYTHING correct! You're a category master! 👑";
+
+createConfetti();
+
+}
+
+
+else if(score >= 10) {
+
+resultEmoji.textContent =
+"😎👏✨";
+
+resultTitle.textContent =
+"Almost Perfect!";
+
+resultMessage.textContent =
+"Wow! So close! Just a few more and you would've conquered the whole challenge!";
+
+}
+
+
+else if(score >= 7) {
+
+resultEmoji.textContent =
+"😏👍😂";
+
+resultTitle.textContent =
+"Not Bad!";
+
+resultMessage.textContent =
+"You're getting there! A little more practice and you'll beat this game! 😜";
+
+}
+
+
+else if(score >= 4) {
+
+resultEmoji.textContent =
+"😅🙈😂";
+
+resultTitle.textContent =
+"Oops...!";
+
+resultMessage.textContent =
+"Some of those phrases really fooled you! 😜 Better luck next round!";
+
+}
+
+
+else {
+
+resultEmoji.textContent =
+"😂🤦‍♀️🤣";
+
+resultTitle.textContent =
+"Uh-oh...!";
+
+resultMessage.textContent =
+"The categories were fighting back! 😭😂 Time for a rematch!";
+
+}
+
+}
+
+
+/* =========================
+   CONFETTI
+========================= */
+
+function createConfetti() {
+
+const emojis = [
+"🎉",
+"🎊",
+"⭐",
+"✨",
+"🏆",
+"🥳",
+"💫"
+];
+
+
+for(let i=0;i<35;i++) {
+
+const confetti =
+document.createElement("div");
+
+confetti.className =
+"confetti";
+
+confetti.textContent =
+emojis[
+Math.floor(
+Math.random() * emojis.length
+)
+];
+
+confetti.style.left =
+Math.random() * 100 + "%";
+
+confetti.style.animationDelay =
+Math.random() * 1.5 + "s";
+
+document.body.appendChild(
+confetti
+);
+
+
+setTimeout(() => {
+
+confetti.remove();
+
+},4500);
+
+}
+
+}
+
+
+/* =========================
+   START GAME
+========================= */
+
+function startGame() {
+
+clearInterval(timer);
+
+score = 0;
+
+remaining = items.length;
+
+timeLeft = 60;
+
+gameOver = false;
+
+draggedWord = null;
+
+selectedWord = null;
+
+
+resultOverlay.style.display =
+"none";
+
+
+message.textContent =
+"📱 Tap a phrase → Tap a category";
+
+
+createWords();
+
+createCategories();
+
+updateDisplay();
+
+startTimer();
+
+}
+
+
+/* =========================
+   RESTART
+========================= */
+
+restartButton.addEventListener(
+"click",
+startGame
+);
+
+
+/* =========================
+   START
+========================= */
 
 startGame();
 
@@ -655,4 +1309,3 @@ startGame();
 
 </body>
 </html>
-```
