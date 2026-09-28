@@ -1,0 +1,695 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Category Challenge</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: linear-gradient(135deg, #eef2ff, #f8fafc);
+        color: #1e293b;
+        min-height: 100vh;
+    }
+
+    .container {
+        width: min(1100px, 94%);
+        margin: 0 auto;
+        padding: 25px 0 40px;
+    }
+
+    header {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    h1 {
+        margin: 0 0 8px;
+        font-size: clamp(28px, 5vw, 42px);
+    }
+
+    .subtitle {
+        color: #64748b;
+        margin: 0;
+        font-size: 16px;
+    }
+
+    .info-bar {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin: 20px 0;
+    }
+
+    .info-box {
+        background: white;
+        padding: 10px 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        font-weight: bold;
+    }
+
+    #timer {
+        font-size: 20px;
+    }
+
+    #timer.warning {
+        color: #dc2626;
+    }
+
+    #message {
+        min-height: 30px;
+        text-align: center;
+        font-weight: bold;
+        margin: 10px 0 18px;
+    }
+
+    .words-area {
+        background: white;
+        padding: 18px;
+        border-radius: 18px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        margin-bottom: 22px;
+    }
+
+    .words-title {
+        text-align: center;
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
+
+    #words {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        min-height: 60px;
+    }
+
+    .word {
+        border: none;
+        background: #e0e7ff;
+        color: #1e293b;
+        padding: 12px 17px;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: grab;
+        user-select: none;
+        touch-action: none;
+        transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .word:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 12px rgba(0,0,0,0.12);
+    }
+
+    .word.dragging {
+        opacity: 0.5;
+        transform: scale(0.95);
+    }
+
+    .categories {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+
+    .category {
+        background: white;
+        min-height: 170px;
+        border-radius: 18px;
+        padding: 15px;
+        box-shadow: 0 5px 18px rgba(0,0,0,0.08);
+        border: 3px solid transparent;
+        transition: transform 0.15s, border-color 0.15s, background 0.15s;
+    }
+
+    .category.drag-over {
+        border-color: #6366f1;
+        background: #eef2ff;
+        transform: scale(1.02);
+    }
+
+    .category-title {
+        text-align: center;
+        font-size: 19px;
+        font-weight: bold;
+        margin-bottom: 12px;
+    }
+
+    .placed {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+    }
+
+    .placed .word {
+        cursor: default;
+        opacity: 0.65;
+        background: #f1f5f9;
+    }
+
+    .wrong {
+        animation: shake 0.3s;
+    }
+
+    @keyframes shake {
+        25% {
+            transform: translateX(-7px);
+        }
+        50% {
+            transform: translateX(7px);
+        }
+        75% {
+            transform: translateX(-4px);
+        }
+    }
+
+    #restart {
+        display: block;
+        margin: 25px auto 0;
+        border: none;
+        background: #4f46e5;
+        color: white;
+        padding: 13px 25px;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    #restart:hover {
+        background: #4338ca;
+    }
+
+    .game-over {
+        text-align: center;
+        background: white;
+        border-radius: 18px;
+        padding: 25px;
+        margin-top: 20px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    .game-over h2 {
+        margin-top: 0;
+    }
+
+    @media (max-width: 750px) {
+        .categories {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .category {
+            min-height: 150px;
+        }
+    }
+
+    @media (max-width: 500px) {
+        .container {
+            width: 94%;
+            padding-top: 18px;
+        }
+
+        .categories {
+            grid-template-columns: 1fr;
+        }
+
+        .category {
+            min-height: 120px;
+        }
+
+        .word {
+            font-size: 15px;
+            padding: 11px 14px;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <header>
+        <h1>🎯 Category Challenge</h1>
+        <p class="subtitle">
+            Drag each phrase into the correct category!
+        </p>
+    </header>
+
+    <div class="info-bar">
+        <div class="info-box">
+            ⏱️ Time: <span id="timer">1:00</span>
+        </div>
+
+        <div class="info-box">
+            ⭐ Score: <span id="score">0</span>
+        </div>
+
+        <div class="info-box">
+            📌 Remaining: <span id="remaining">12</span>
+        </div>
+    </div>
+
+    <div id="message">
+        Drag each phrase to the correct category.
+    </div>
+
+    <div class="words-area">
+        <div class="words-title">
+            Words & Phrases
+        </div>
+
+        <div id="words"></div>
+    </div>
+
+    <div id="categories" class="categories"></div>
+
+    <button id="restart">
+        🔄 Restart Round
+    </button>
+
+</div>
+
+<script>
+
+const items = [
+    {
+        text: "art / music",
+        category: "Make"
+    },
+    {
+        text: "a foreign language",
+        category: "Study"
+    },
+    {
+        text: "online",
+        category: "Play"
+    },
+    {
+        text: "sport",
+        category: "Play"
+    },
+    {
+        text: "games",
+        category: "Play"
+    },
+    {
+        text: "a musical instrument",
+        category: "Play"
+    },
+    {
+        text: "mistakes",
+        category: "Make"
+    },
+    {
+        text: "friends",
+        category: "Make"
+    },
+    {
+        text: "a test",
+        category: "Do / Take"
+    },
+    {
+        text: "exams",
+        category: "Do / Take"
+    },
+    {
+        text: "a performance",
+        category: "Give"
+    },
+    {
+        text: "a school uniform",
+        category: "Wear"
+    }
+];
+
+const categories = [
+    {
+        name: "Make",
+        icon: "🔨"
+    },
+    {
+        name: "Wear",
+        icon: "👕"
+    },
+    {
+        name: "Do / Take",
+        icon: "✋"
+    },
+    {
+        name: "Give",
+        icon: "🎁"
+    },
+    {
+        name: "Play",
+        icon: "🎮"
+    },
+    {
+        name: "Study",
+        icon: "📚"
+    }
+];
+
+let score = 0;
+let remaining = items.length;
+let timeLeft = 60;
+let timer;
+let gameOver = false;
+let draggedWord = null;
+
+const wordsContainer = document.getElementById("words");
+const categoriesContainer = document.getElementById("categories");
+const scoreDisplay = document.getElementById("score");
+const remainingDisplay = document.getElementById("remaining");
+const timerDisplay = document.getElementById("timer");
+const message = document.getElementById("message");
+const restartButton = document.getElementById("restart");
+
+
+/* -------------------------
+   SHUFFLE
+------------------------- */
+
+function shuffle(array) {
+    return [...array].sort(() => Math.random() - 0.5);
+}
+
+
+/* -------------------------
+   CREATE WORDS
+------------------------- */
+
+function createWords() {
+
+    wordsContainer.innerHTML = "";
+
+    const shuffledItems = shuffle(items);
+
+    shuffledItems.forEach(item => {
+
+        const word = document.createElement("button");
+
+        word.className = "word";
+        word.textContent = item.text;
+
+        word.draggable = true;
+
+        word.dataset.category = item.category;
+
+        word.addEventListener("dragstart", function () {
+
+            if (gameOver) return;
+
+            draggedWord = word;
+
+            word.classList.add("dragging");
+
+        });
+
+        word.addEventListener("dragend", function () {
+
+            word.classList.remove("dragging");
+
+        });
+
+        wordsContainer.appendChild(word);
+
+    });
+}
+
+
+/* -------------------------
+   CREATE RANDOM CATEGORIES
+------------------------- */
+
+function createCategories() {
+
+    categoriesContainer.innerHTML = "";
+
+    const shuffledCategories = shuffle(categories);
+
+    shuffledCategories.forEach(category => {
+
+        const box = document.createElement("div");
+
+        box.className = "category";
+
+        box.dataset.category = category.name;
+
+        box.innerHTML = `
+            <div class="category-title">
+                ${category.icon} ${category.name}
+            </div>
+
+            <div class="placed"></div>
+        `;
+
+        box.addEventListener("dragover", function(event) {
+
+            event.preventDefault();
+
+            if (!gameOver) {
+                box.classList.add("drag-over");
+            }
+
+        });
+
+        box.addEventListener("dragleave", function() {
+
+            box.classList.remove("drag-over");
+
+        });
+
+        box.addEventListener("drop", function(event) {
+
+            event.preventDefault();
+
+            box.classList.remove("drag-over");
+
+            if (!gameOver && draggedWord) {
+
+                checkAnswer(box);
+
+            }
+
+        });
+
+        categoriesContainer.appendChild(box);
+
+    });
+}
+
+
+/* -------------------------
+   CHECK ANSWER
+------------------------- */
+
+function checkAnswer(categoryBox) {
+
+    const correctCategory = draggedWord.dataset.category;
+
+    const selectedCategory = categoryBox.dataset.category;
+
+    if (correctCategory === selectedCategory) {
+
+        score++;
+        remaining--;
+
+        draggedWord.classList.remove("dragging");
+
+        draggedWord.classList.add("placed");
+
+        draggedWord.draggable = false;
+
+        categoryBox
+            .querySelector(".placed")
+            .appendChild(draggedWord);
+
+        message.textContent =
+            `✅ Correct! "${draggedWord.textContent}" → ${selectedCategory}`;
+
+        draggedWord = null;
+
+        updateDisplay();
+
+        if (remaining === 0) {
+
+            endGame(
+                `🎉 Excellent! You sorted all ${items.length} phrases!`
+            );
+
+        }
+
+    } else {
+
+        draggedWord.classList.add("wrong");
+
+        message.textContent =
+            "❌ Not quite! Try another category.";
+
+        setTimeout(() => {
+
+            if (draggedWord) {
+                draggedWord.classList.remove("wrong");
+            }
+
+        }, 350);
+
+    }
+
+}
+
+
+/* -------------------------
+   UPDATE DISPLAY
+------------------------- */
+
+function updateDisplay() {
+
+    scoreDisplay.textContent = score;
+
+    remainingDisplay.textContent = remaining;
+
+    const minutes = Math.floor(timeLeft / 60);
+
+    const seconds = timeLeft % 60;
+
+    timerDisplay.textContent =
+        `${minutes}:${String(seconds).padStart(2, "0")}`;
+
+    if (timeLeft <= 10) {
+
+        timerDisplay.classList.add("warning");
+
+    } else {
+
+        timerDisplay.classList.remove("warning");
+
+    }
+
+}
+
+
+/* -------------------------
+   TIMER
+------------------------- */
+
+function startTimer() {
+
+    clearInterval(timer);
+
+    timer = setInterval(function() {
+
+        if (gameOver) return;
+
+        timeLeft--;
+
+        updateDisplay();
+
+        if (timeLeft <= 0) {
+
+            endGame(
+                `⏰ Time's up! Your final score is ${score}/${items.length}.`
+            );
+
+        }
+
+    }, 1000);
+
+}
+
+
+/* -------------------------
+   END GAME
+------------------------- */
+
+function endGame(text) {
+
+    gameOver = true;
+
+    clearInterval(timer);
+
+    message.textContent = text;
+
+    document
+        .querySelectorAll(".word")
+        .forEach(word => {
+
+            word.draggable = false;
+
+        });
+
+}
+
+
+/* -------------------------
+   START / RESTART GAME
+------------------------- */
+
+function startGame() {
+
+    clearInterval(timer);
+
+    score = 0;
+
+    remaining = items.length;
+
+    timeLeft = 60;
+
+    gameOver = false;
+
+    draggedWord = null;
+
+    message.textContent =
+        "Drag each phrase to the correct category.";
+
+    createWords();
+
+    /*
+       IMPORTANT:
+       The categories are shuffled every time
+       this function runs.
+    */
+    createCategories();
+
+    updateDisplay();
+
+    startTimer();
+
+}
+
+
+/* -------------------------
+   RESTART BUTTON
+------------------------- */
+
+restartButton.addEventListener("click", function() {
+
+    startGame();
+
+});
+
+
+/* -------------------------
+   START FIRST ROUND
+------------------------- */
+
+startGame();
+
+</script>
+
+</body>
+</html>
+```
